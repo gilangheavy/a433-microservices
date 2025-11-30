@@ -2,7 +2,7 @@ name: CI Backend Karsajobs
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "karsajobs-ui" ]
 
 jobs:
   build-and-push:
