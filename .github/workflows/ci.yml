@@ -1,0 +1,46 @@
+name: CI Backend Karsajobs
+
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # Langkah 1: Lint Dockerfile (Saran 4)
+    - name: Lint Dockerfile
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: Dockerfile
+
+    # Langkah 2: Setup Go & Test (Saran 4)
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+    
+    - name: Run Unit Test
+      run: go test -v -short --count=1 $(go list ./...)
+
+    # Langkah 3: Build & Push ke GHCR
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ghcr.io/${{ github.repository_owner }}/karsajobs:latest
